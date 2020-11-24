@@ -17,6 +17,12 @@ public class Runner {
         XmlDocParse docParse = new XmlDocParse();
         docParse.parseDirectory(inputFiles);
 
+        // == BruteForce ==
+        // todo implement bruteforce => use searchquery class
+
+        // == Lucene ==
+        // todo implement lucene
+
         // == MongoDB ==
         // Add the articles to Mongo
         docParse.addArticlesToMongo();
