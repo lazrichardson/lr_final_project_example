@@ -29,7 +29,7 @@ public class XmlDocParse {
     public ArrayList<Article> articles;
     public ArrayList<Article> searchResults;
     public Long searchTime;
-    public MongoDb mongoDb;
+    private MongoDb mongoDb;
 
     public void addArticlesToMongo() throws ParseException {
 
@@ -51,6 +51,15 @@ public class XmlDocParse {
             jdbc.insert(tableName, cleanTitle, article.articleYear.toLowerCase());
         }
         System.out.println("Rows Added: " + articles.size());
+    }
+
+    public void mongoTermDateSearch(String term, String startDate, String endDate) throws ParseException {
+        mongoDb.mongoTermDateSearch(term, startDate, endDate);
+    }
+
+    public void mongoContainsTermRange(String term, String startDate, String endDate) throws ParseException {
+        mongoDb.mongoTermDateSearch(term, startDate, endDate);
+
     }
 
     public void sqlTermDateSearch(String term, String startDate, String endDate) throws SQLException {
@@ -136,16 +145,24 @@ public class XmlDocParse {
         }
     }
 
-    public void bruteForceSearch(String searchTerm) {
+    public void bruteForceSearch(String searchTerm, String fromDate, String toDate) {
         if (articles.size() > 0) {
             searchTerm = searchTerm.toLowerCase();
             long startTime = System.nanoTime();
             for (Article article : articles) {
                 String articleTitle = article.articleTitle.toLowerCase();
-                //String articleContents = article.getArticleContents().toLowerCase();
 
                 if (articleTitle.contains(searchTerm)) {
-                    searchResults.add(article);
+
+                    int from = Integer.parseInt(fromDate);
+                    int to = Integer.parseInt(toDate);
+
+                    int articleDate = Integer.parseInt(article.articleYear);
+
+                    if (articleDate >= from && articleDate <= to) {
+                        // todo: test date filtering
+                        searchResults.add(article);
+                    }
                 }
             }
             long endTime = System.nanoTime();
@@ -158,30 +175,5 @@ public class XmlDocParse {
     public void printSearchResults() {
         System.out.println("Hits found: " + searchResults.size());
         System.out.println("Search Time (microseconds): " + searchTime);
-
-
-
-        /*
-         int i = 0;
-        for (com.example.lrfinalproject.databases.Article article : searchResults) {
-            i++;
-            System.out.println(i + ". Title: " + article.articleTitle);
-        }
-         */
-
-
     }
-
-
-    /*
-    public static void main(String[] args) throws IOException, SAXException, ParserConfigurationException {
-        com.example.lrfinalproject.databases.XmlDocParse search = new com.example.lrfinalproject.databases.XmlDocParse();
-        search.parse("com.example.lrfinalproject.databases.Article", new File("Data/pubmed20n1016.xml"));
-
-        for (com.example.lrfinalproject.databases.Article article : search.articles) {
-            System.out.println(article.articleTitle + "\n" + article.articleContents + "\n");
-        }
-    }
-
-     */
 }
