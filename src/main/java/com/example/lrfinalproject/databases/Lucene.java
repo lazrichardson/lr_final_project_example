@@ -10,8 +10,6 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.*;
-import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.FSDirectory;
 
@@ -19,6 +17,7 @@ public class Lucene {
 
     StandardAnalyzer analyzer;
     FSDirectory index;
+    String indexLocation;
     IndexWriterConfig config;
     IndexWriter writer;
 
@@ -27,12 +26,14 @@ public class Lucene {
         analyzer = new StandardAnalyzer();
 
         // Create the index
-        index = FSDirectory.open(Paths.get(indexDirectory));
+        indexLocation = indexDirectory;
+        indexCleanup();
+        index = FSDirectory.open(Paths.get(indexLocation));
         config = new IndexWriterConfig(analyzer);
         writer = new IndexWriter(index, config);
     }
 
-    public ArrayList<Article> search(String searchTerm, String startDate, String endDate) throws IOException, ParseException {
+    public ArrayList<Article> search(String searchTerm, String startDate, String endDate) throws IOException {
         ArrayList<Article> results = new ArrayList<>();
 
         // initialize the boolean query
@@ -77,8 +78,9 @@ public class Lucene {
     }
 
     public void indexCleanup() {
-        File[] indexCleanup = new File("lucene_index/").listFiles();
+        File[] indexCleanup = new File(indexLocation).listFiles();
         // clean up the index for the next run
+        assert indexCleanup != null;
         for (File file : indexCleanup) {
             file.delete();
         }

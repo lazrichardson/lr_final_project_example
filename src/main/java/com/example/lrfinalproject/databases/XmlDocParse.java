@@ -20,6 +20,8 @@ import java.util.ArrayList;
 public class XmlDocParse {
 
     public ArrayList<Article> articles;
+
+
     public ArrayList<Article> bruteForceSearchResults;
     public ArrayList<Article> mongoSearchResults;
     public ArrayList<Article> luceneSearchResults;
@@ -31,10 +33,10 @@ public class XmlDocParse {
     private Lucene lucene;
     private MySql mySql;
 
-    final private String indexDirectory = "src/main/java/luceneIndex";
+    final private String indexDirectory = "/Users/luther/Downloads/demo 2/src/main/resources/luceneIndex";
 
 
-    public XmlDocParse() {
+    public XmlDocParse() throws IOException {
         this.articles = new ArrayList<>();
         this.bruteForceSearchResults = new ArrayList<>();
         this.mongoSearchResults = new ArrayList<>();
@@ -42,16 +44,29 @@ public class XmlDocParse {
         this.sqlSearchResults = new ArrayList<>();
 
         this.searchTime = null;
+
+        this.lucene = new Lucene(indexDirectory);
+    }
+
+    public ArrayList<Article> getBruteForceSearchResults() {
+        return bruteForceSearchResults;
+    }
+
+    public void addArticles() throws IOException {
+        addArticlesToLucene();
     }
 
 
-    public void addArticlesToLucene() throws IOException {
+    public ArrayList<Article> getLuceneSearchResults() {
+        return luceneSearchResults;
+    }
 
-        lucene = new Lucene(indexDirectory);
+    private void addArticlesToLucene() throws IOException {
 
         for (Article article : articles) {
             lucene.addDoc(article);
         }
+        System.out.println("Added " + articles.size() + " to lucene");
         lucene.writer.close();
     }
 
@@ -99,16 +114,10 @@ public class XmlDocParse {
             if (dateParts != null) {
                 year = dateParts.getChildNodes();
                 if (year.getLength() > 0) {
+                    // pull out the year from XML
                     StringBuilder builder = new StringBuilder();
-                    for (int j = 0; j < year.getLength(); j++) {
-                        String data = year.item(j).getTextContent();
-                        if (j == 1 || j == 3) {
-                            String dataFormatted = data + "-";
-                            builder.append(dataFormatted);
-                        } else {
-                            builder.append(data);
-                        }
-                    }
+                    String data = year.item(1).getTextContent();
+                    builder.append(data);
                     // remove spaces from the date
                     String cleanYear = builder.toString().replace("  ", "");
                     cleanYear = cleanYear.replaceAll("[\\n\\t ]", "");
@@ -135,17 +144,26 @@ public class XmlDocParse {
         }
     }
 
-    public void search(String database, String searchTerm, String startYear, String endYear) throws ParseException, SQLException {
-        mongoDb.mongoTermDateSearch(searchTerm, startYear, endYear);
-        luceneSearchResults = lucene.search(searchTerm, startYear, endYear);
-        mySql.searchRange(searchTerm, startYear, endYear);
-        bruteForceSearch(searchTerm, startYear, endYear);
+    public void search(String database, String searchTerm, String startYear, String endYear) throws ParseException, SQLException, IOException {
+        // mongoSearchResults = mongoDb.mongoTermDateSearch(searchTerm, startYear, endYear);
+        // mySql.searchRange(searchTerm, startYear, endYear);
+        // bruteForceSearch(searchTerm, startYear, endYear);
+
+        if (database.equals("bruteforce")) {
+            bruteForceSearch(searchTerm, startYear, endYear);
+        }
+        System.out.println("Bruteforce Results: " + bruteForceSearchResults.size());
+
+
+        if (database.equals("lucene")) {
+            luceneSearchResults = lucene.search(searchTerm, startYear, endYear);
+        }
+        System.out.println("Lucene Results: " + luceneSearchResults.size());
     }
 
-    public void bruteForceSearch(String searchTerm, String fromDate, String toDate) {
+    private void bruteForceSearch(String searchTerm, String fromDate, String toDate) {
         if (articles.size() > 0) {
             searchTerm = searchTerm.toLowerCase();
-            long startTime = System.nanoTime();
             for (Article article : articles) {
                 String articleTitle = article.articleTitle.toLowerCase();
 
@@ -155,22 +173,20 @@ public class XmlDocParse {
                     int to = Integer.parseInt(toDate);
 
                     int articleDate = Integer.parseInt(article.articleYear);
-
                     if (articleDate >= from && articleDate <= to) {
                         // todo: test date filtering
                         bruteForceSearchResults.add(article);
                     }
+
+
                 }
             }
-            long endTime = System.nanoTime();
-            long totalTime = endTime - startTime;
-            searchTime = totalTime / 1000; // convert to microseconds
-
         } else System.out.println("No items to search");
     }
 
-    public void printSearchResults() {
-        System.out.println("Hits found: " + bruteForceSearchResults.size());
-        System.out.println("Search Time (microseconds): " + searchTime);
+    public void printSearchResults(ArrayList<Article> results) {
+        for (Article article : results) {
+            System.out.println("Title: " + article.getArticleTitle() + "\nYear: " + article.getArticleYear());
+        }
     }
 }

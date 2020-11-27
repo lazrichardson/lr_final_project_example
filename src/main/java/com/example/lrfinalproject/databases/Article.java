@@ -18,4 +18,7 @@ public class Article {
         this.articleTitle = articleTitle;
     }
 
+    public String getArticleYear() {
+        return articleYear;
+    }
 }

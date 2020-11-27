@@ -66,8 +66,10 @@ public class MongoDb {
         mongoDatabase.getCollection(collectionName).insertOne(doc);
     }
 
-    public void mongoTermDateSearch(String searchTerm, String fromDate, String toDate) throws ParseException {
+    public ArrayList<Article> mongoTermDateSearch(String searchTerm, String fromDate, String toDate) throws ParseException {
         ArrayList<Document> results = new ArrayList<>();
+        ArrayList<Article> returnResults = new ArrayList<>();
+
         String searchRegex = ".*" + searchTerm + ".*";
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -78,8 +80,13 @@ public class MongoDb {
         mongoDatabase.getCollection(collectionName).find(match).into(results);
 
         for (Document result : results) {
-            System.out.println(result.toString());
+
+            Article article = new Article(result.get("title").toString(),
+                    result.get("date").toString());
+            //  System.out.println(result.toString());
+            returnResults.add(article);
         }
+        return returnResults;
     }
 
     public void mongoContainsTermRange(String searchTerm, String fromDate, String toDate) throws ParseException {
