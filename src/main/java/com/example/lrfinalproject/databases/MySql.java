@@ -1,6 +1,7 @@
 package com.example.lrfinalproject.databases;
 
 import java.sql.*;
+import java.util.ArrayList;
 
 public class MySql {
 
@@ -10,7 +11,7 @@ public class MySql {
     String driver = "com.mysql.cj.jdbc.Driver";
     String tableName = "PUB_MED_ARTICLES";
 
-    public MySql() throws SQLException {
+    public MySql() {
         createTable("ARTICLE_TITLE", "ARTICLE_YEAR");
     }
 
@@ -26,43 +27,30 @@ public class MySql {
         }
     }
 
-    private void executeQuery(String query, String type) {
+    private ArrayList<Article> executeQuery(String query) {
+        ArrayList<Article> results = new ArrayList<>();
         try {
             Class.forName(driver);
             Connection con = DriverManager.getConnection(connectionUrl, user, password);
             Statement stmt = con.createStatement();
             ResultSet rs = stmt.executeQuery(query);
-            if (type.equals("termDate")) {
-                readTermDateResultSet(rs);
-            } else {
-                readTermRangeResultSet(rs);
-            }
+            results = readTermDateResultSet(rs);
             con.close();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+        return results;
     }
 
-    public void readTermDateResultSet(ResultSet rs) throws SQLException {
-        System.out.println("ARTICLE_TITLE        |        ARTICLE_YEAR");
+    public ArrayList<Article> readTermDateResultSet(ResultSet rs) throws SQLException {
+        ArrayList<Article> results = new ArrayList<>();
         while (rs.next()) {
             String title = rs.getString("ARTICLE_TITLE");
-            Date date = rs.getDate("ARTICLE_YEAR");
-            String dateString = date.toString();
-            String output = title + "        | " + dateString;
-            System.out.println(output);
+            int date = rs.getInt("ARTICLE_YEAR");
+            String dateString = Integer.toString(date);
+            results.add(new Article(title, dateString));
         }
-    }
-
-    public void readTermRangeResultSet(ResultSet rs) throws SQLException {
-        System.out.println("Total occurrences of search term in time period, by year");
-        System.out.println("Year        |        Count");
-        while (rs.next()) {
-            String count = rs.getString("count");
-            String year = rs.getString("year");
-
-            System.out.println(year + "        |        " + count);
-        }
+        return results;
     }
 
     public void addRow(Article article) {
@@ -81,7 +69,7 @@ public class MySql {
         // create the table
         query = "CREATE TABLE IF NOT EXISTS " + tableName + "("
                 + col1 + " VARCHAR(6000),"
-                + col2 + " DATE"
+                + col2 + " INTEGER"
                 + ")";
 
         executeUpdate(query);
@@ -95,14 +83,8 @@ public class MySql {
         executeUpdate(query);
     }
 
-    // SQL Delete with JDBC
-    private void delete(String name, String owner) {
 
-        String query = "DELETE FROM pet WHERE name='" + name + "' AND owner='" + owner + "'";
-        executeUpdate(query);
-    }
-
-    public void searchTerm(String searchTerm, String startDate, String endDate) throws SQLException {
+    public ArrayList<Article> searchTerm(String searchTerm, String startDate, String endDate) throws SQLException {
         // Example Query:
         // SELECT cs622.PUB_MED_ARTICLES.ARTICLE_TITLE from cs622.PUB_MED_ARTICLES
         // WHERE ARTICLE_TITLE LIKE '%FLU%'
@@ -111,32 +93,6 @@ public class MySql {
         String query = "SELECT * FROM PUB_MED_ARTICLES WHERE ARTICLE_TITLE LIKE '%"
                 + searchTerm + "%' AND ARTICLE_YEAR BETWEEN '" + startDate + "' AND '" + endDate + "'";
 
-        executeQuery(query, "termDate");
-
-    }
-
-    public void searchRange(String searchTerm, String startDate, String endDate) throws SQLException {
-        // Write a query to count the number of given keywords per year, e.g. “flu”, “obesity" keywords, for at least three years.
-/*      Example Query:
-
-        select
-        sum(
-            case when length(ARTICLE_TITLE) > length(replace(ARTICLE_TITLE, 'heart',''))
-                then (length(ARTICLE_TITLE) - length(replace(ARTICLE_TITLE, 'heart',''))) / length('heart')
-            else
-                0
-            end
-            )
-        from cs622.PUB_MED_ARTICLES;
- */
-
-        String query = "select year(ARTICLE_YEAR) as year, sum(" +
-                "case when length(ARTICLE_TITLE) > length(replace(lower(ARTICLE_TITLE), '" + searchTerm + "','')) " +
-                "then (length(ARTICLE_TITLE) - length(replace(lower(ARTICLE_TITLE), '" + searchTerm + "',''))) / length('" + searchTerm + "') " +
-                "ELSE 0 END" +
-                ") as count FROM PUB_MED_ARTICLES WHERE ARTICLE_YEAR BETWEEN '" + startDate + "' AND '" + endDate +
-                "' group by year(ARTICLE_YEAR) order by year(ARTICLE_YEAR)";
-        executeQuery(query, "");
-
+        return executeQuery(query);
     }
 }

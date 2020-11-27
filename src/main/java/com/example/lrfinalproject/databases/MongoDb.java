@@ -13,6 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.regex.Pattern;
 
 import static com.mongodb.client.model.Aggregates.group;
 import static com.mongodb.client.model.Filters.*;
@@ -52,17 +53,11 @@ public class MongoDb {
         mongoDatabase.createCollection(collectionName);
     }
 
-    public void addMongoDoc(Article article) throws ParseException {
+    public void addMongoDoc(Article article) {
         // insert a new document into a collection
         Document doc = new Document();
         doc.put("title", article.articleTitle.toLowerCase());
-
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        Date date = simpleDateFormat.parse(article.articleYear.toLowerCase());
-        doc.put("date", date);
-
-        String year = article.articleYear.substring(0, 4);
-        doc.put("year", year);
+        doc.put("year", Integer.parseInt(article.articleYear));
         mongoDatabase.getCollection(collectionName).insertOne(doc);
     }
 
@@ -72,23 +67,23 @@ public class MongoDb {
 
         String searchRegex = ".*" + searchTerm + ".*";
 
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        Date startDate = simpleDateFormat.parse(fromDate);
-        Date endDate = simpleDateFormat.parse(toDate);
+        int startDate = Integer.parseInt(fromDate);
+        int endDate = Integer.parseInt(toDate);
 
-        Bson match = and(regex("title", searchRegex), gte("date", startDate), lte("date", endDate));
+        Bson match = and(eq("title", Pattern.compile(searchTerm)), and(lte("year", 2017L), gte("year", 0L)));
+        // Bson match = and(regex("title", searchRegex), gte("year", startDate), lte("year", endDate));
         mongoDatabase.getCollection(collectionName).find(match).into(results);
 
         for (Document result : results) {
-
             Article article = new Article(result.get("title").toString(),
-                    result.get("date").toString());
-            //  System.out.println(result.toString());
+                    result.get("year").toString());
+            System.out.println(result.toString());
             returnResults.add(article);
         }
         return returnResults;
     }
 
+    /*
     public void mongoContainsTermRange(String searchTerm, String fromDate, String toDate) throws ParseException {
 
         ArrayList<Document> results = new ArrayList<>();
@@ -125,4 +120,6 @@ public class MongoDb {
         }
 
     }
+
+     */
 }

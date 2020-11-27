@@ -19,8 +19,7 @@ import java.util.ArrayList;
 
 public class XmlDocParse {
 
-    public ArrayList<Article> articles;
-
+    public final ArrayList<Article> ARTICLES;
 
     public ArrayList<Article> bruteForceSearchResults;
     public ArrayList<Article> mongoSearchResults;
@@ -33,27 +32,32 @@ public class XmlDocParse {
     private Lucene lucene;
     private MySql mySql;
 
-    final private String indexDirectory = "/Users/luther/Downloads/demo 2/src/main/resources/luceneIndex";
 
-
-    public XmlDocParse() throws IOException {
-        this.articles = new ArrayList<>();
+    public XmlDocParse() throws IOException, SQLException, ParseException {
+        this.ARTICLES = new ArrayList<>();
         this.bruteForceSearchResults = new ArrayList<>();
         this.mongoSearchResults = new ArrayList<>();
         this.luceneSearchResults = new ArrayList<>();
         this.sqlSearchResults = new ArrayList<>();
 
-        this.searchTime = null;
-
-        this.lucene = new Lucene(indexDirectory);
+        this.mongoDb = new MongoDb();
+        this.lucene = new Lucene("/Users/luther/Downloads/demo 2/src/main/resources/luceneIndex");
+        this.mySql = new MySql();
     }
 
     public ArrayList<Article> getBruteForceSearchResults() {
         return bruteForceSearchResults;
     }
 
-    public void addArticles() throws IOException {
+
+    public ArrayList<Article> getMongoSearchResults() {
+        return mongoSearchResults;
+    }
+
+    public void addArticles() throws IOException, ParseException, SQLException {
         addArticlesToLucene();
+        addArticlesToMongo();
+        addArticlesToMysql();
     }
 
 
@@ -63,33 +67,34 @@ public class XmlDocParse {
 
     private void addArticlesToLucene() throws IOException {
 
-        for (Article article : articles) {
+        for (Article article : ARTICLES) {
             lucene.addDoc(article);
         }
-        System.out.println("Added " + articles.size() + " to lucene");
+        System.out.println("Added " + ARTICLES.size() + " to lucene");
         lucene.writer.close();
     }
 
-    public void addArticlesToMongo() throws ParseException {
+    public void addArticlesToMongo() {
 
-        mongoDb = new MongoDb();
-
-        for (Article article : articles) {
+        for (Article article : ARTICLES) {
             mongoDb.addMongoDoc(article);
         }
-        System.out.println("Rows Added: " + articles.size());
+        System.out.println("Added " + ARTICLES.size() + " to mongo");
     }
 
-    public void addArticlesToMysql() throws SQLException {
-        MySql mySql = new MySql();
+    public ArrayList<Article> getSqlSearchResults() {
+        return sqlSearchResults;
+    }
 
-        for (Article article : articles) {
+    public void addArticlesToMysql() {
+
+        for (Article article : ARTICLES) {
             mySql.addRow(article);
         }
-        System.out.println("Rows Added: " + articles.size());
+        System.out.println("Added " + ARTICLES.size() + " to mySql");
     }
 
-    public void parse(File inputFile) throws ParserConfigurationException, IOException, SAXException {
+    private void parse(File inputFile) throws ParserConfigurationException, IOException, SAXException {
 
         String tagName = "PubmedArticle";
 
@@ -124,7 +129,7 @@ public class XmlDocParse {
                     articleYear = cleanYear;
                 }
                 // add to the list of articles
-                articles.add(new Article(articleTitle, articleYear));
+                ARTICLES.add(new Article(articleTitle, articleYear));
             }
         }
     }
@@ -151,20 +156,31 @@ public class XmlDocParse {
 
         if (database.equals("bruteforce")) {
             bruteForceSearch(searchTerm, startYear, endYear);
+            System.out.println("Bruteforce Results: " + bruteForceSearchResults.size());
         }
-        System.out.println("Bruteforce Results: " + bruteForceSearchResults.size());
 
 
         if (database.equals("lucene")) {
             luceneSearchResults = lucene.search(searchTerm, startYear, endYear);
+            System.out.println("Lucene Results: " + luceneSearchResults.size());
         }
-        System.out.println("Lucene Results: " + luceneSearchResults.size());
+
+        if (database.equals("mongo")) {
+            mongoSearchResults = mongoDb.mongoTermDateSearch(searchTerm, startYear, endYear);
+            System.out.println("Mongo Results: " + mongoSearchResults.size());
+        }
+
+        if (database.equals("mysql")) {
+            sqlSearchResults = mySql.searchTerm(searchTerm, startYear, endYear);
+            System.out.println("MySql Results: " + sqlSearchResults.size());
+        }
+
     }
 
     private void bruteForceSearch(String searchTerm, String fromDate, String toDate) {
-        if (articles.size() > 0) {
+        if (ARTICLES.size() > 0) {
             searchTerm = searchTerm.toLowerCase();
-            for (Article article : articles) {
+            for (Article article : ARTICLES) {
                 String articleTitle = article.articleTitle.toLowerCase();
 
                 if (articleTitle.contains(searchTerm)) {
