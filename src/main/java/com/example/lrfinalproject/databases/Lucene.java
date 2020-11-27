@@ -9,16 +9,10 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.*;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.*;
 import org.apache.lucene.store.FSDirectory;
 
 public class Lucene {
@@ -38,16 +32,29 @@ public class Lucene {
         writer = new IndexWriter(index, config);
     }
 
-    public ArrayList<Article> search(String searchTerm) throws IOException, ParseException {
+    public ArrayList<Article> search(String searchTerm, String startDate, String endDate) throws IOException, ParseException {
         ArrayList<Article> results = new ArrayList<>();
-        // Query
-        // "title" arg specifies the default field to us when no field is explicitly specified in the query.
-        Query q = new QueryParser("title", analyzer).parse(searchTerm);
+
+        // initialize the boolean query
+        BooleanQuery.Builder query = new BooleanQuery.Builder();
+        // must include the search term
+        query.add(new TermQuery(new Term("title", searchTerm)), BooleanClause.Occur.MUST);
+
+        // add the date range
+        int start = Integer.parseInt(startDate);
+        int end = Integer.parseInt(endDate);
+        while (start < end) {
+            query.add(new TermQuery(new Term("year", Integer.toString(start))), BooleanClause.Occur.SHOULD);
+            start++;
+        }
+        // must include at least one of the dates in the range
+        query.setMinimumNumberShouldMatch(1);
+
         // Search
         int hitsPerPage = 1000000000;
         IndexReader reader = DirectoryReader.open(index);
         IndexSearcher searcher = new IndexSearcher(reader);
-        TopDocs docs = searcher.search(q, hitsPerPage);
+        TopDocs docs = searcher.search(query.build(), hitsPerPage);
         // Add results
         ScoreDoc[] hits = docs.scoreDocs;
 
@@ -61,10 +68,11 @@ public class Lucene {
         return results;
     }
 
-    public void addDoc(String title, String year) throws IOException {
+    public void addDoc(Article article) throws IOException {
+
         Document doc = new Document();
-        doc.add(new TextField("title", title, Field.Store.YES));
-        doc.add(new TextField("year", year, Field.Store.YES));
+        doc.add(new TextField("title", article.articleTitle, Field.Store.YES));
+        doc.add(new TextField("year", article.articleYear, Field.Store.YES));
         writer.addDocument(doc);
     }
 

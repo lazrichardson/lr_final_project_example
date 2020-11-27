@@ -29,6 +29,7 @@ public class XmlDocParse {
 
     private MongoDb mongoDb;
     private Lucene lucene;
+    private MySql mySql;
 
     final private String indexDirectory = "src/main/java/luceneIndex";
 
@@ -49,10 +50,9 @@ public class XmlDocParse {
         lucene = new Lucene(indexDirectory);
 
         for (Article article : articles) {
-            lucene.addDoc(article.articleTitle, article.articleYear);
+            lucene.addDoc(article);
         }
         lucene.writer.close();
-
     }
 
     public void addArticlesToMongo() throws ParseException {
@@ -66,34 +66,12 @@ public class XmlDocParse {
     }
 
     public void addArticlesToMysql() throws SQLException {
-        JdbcUtil jdbc = new JdbcUtil("jdbc:mysql://localhost:3306/cs622?useTimezone=true&serverTimezone=UTC", "luther", "Ilovebaobei!");
-        String tableName = "PUB_MED_ARTICLES";
+        MySql mySql = new MySql();
 
-        jdbc.createTable(tableName, "ARTICLE_TITLE", "ARTICLE_YEAR");
         for (Article article : articles) {
-            String cleanTitle = article.articleTitle.replace("'", " ").toLowerCase();
-            jdbc.insert(tableName, cleanTitle, article.articleYear.toLowerCase());
+            mySql.addRow(article);
         }
         System.out.println("Rows Added: " + articles.size());
-    }
-
-    public void mongoTermDateSearch(String term, String startDate, String endDate) throws ParseException {
-        mongoDb.mongoTermDateSearch(term, startDate, endDate);
-    }
-
-    public void mongoContainsTermRange(String term, String startDate, String endDate) throws ParseException {
-        mongoDb.mongoTermDateSearch(term, startDate, endDate);
-
-    }
-
-    public void sqlTermDateSearch(String term, String startDate, String endDate) throws SQLException {
-        JdbcUtil jdbc = new JdbcUtil("jdbc:mysql://localhost:3306/cs622?useTimezone=true&serverTimezone=UTC", "luther", "Ilovebaobei!");
-        jdbc.searchTerm(term, startDate, endDate);
-    }
-
-    public void sqlContainsTermRange(String term, String startDate, String endDate) throws SQLException {
-        JdbcUtil jdbc = new JdbcUtil("jdbc:mysql://localhost:3306/cs622?useTimezone=true&serverTimezone=UTC", "luther", "Ilovebaobei!");
-        jdbc.searchRange(term, startDate, endDate);
     }
 
     public void parse(File inputFile) throws ParserConfigurationException, IOException, SAXException {
@@ -114,17 +92,6 @@ public class XmlDocParse {
             // find and print the title
             NodeList title = elem.getElementsByTagName("ArticleTitle");
             String articleTitle = title.item(0).getTextContent();
-
-            String articleAbstract = "";
-            NodeList abstractContents = elem.getElementsByTagName("Abstract");
-            if (abstractContents.getLength() > 0) {
-                StringBuilder builder = new StringBuilder();
-                for (int j = 0; j < abstractContents.getLength(); j++) {
-                    String data = abstractContents.item(j).getTextContent();
-                    builder.append(data);
-                }
-                articleAbstract = builder.toString();
-            }
 
             String articleYear = "";
             NodeList year = elem.getElementsByTagName("ArticleDate");
@@ -147,7 +114,6 @@ public class XmlDocParse {
                     cleanYear = cleanYear.replaceAll("[\\n\\t ]", "");
                     articleYear = cleanYear;
                 }
-
                 // add to the list of articles
                 articles.add(new Article(articleTitle, articleYear));
             }
@@ -167,6 +133,13 @@ public class XmlDocParse {
                 //  System.out.println("Added Doc");
             }
         }
+    }
+
+    public void search(String database, String searchTerm, String startYear, String endYear) throws ParseException, SQLException {
+        mongoDb.mongoTermDateSearch(searchTerm, startYear, endYear);
+        luceneSearchResults = lucene.search(searchTerm, startYear, endYear);
+        mySql.searchRange(searchTerm, startYear, endYear);
+        bruteForceSearch(searchTerm, startYear, endYear);
     }
 
     public void bruteForceSearch(String searchTerm, String fromDate, String toDate) {

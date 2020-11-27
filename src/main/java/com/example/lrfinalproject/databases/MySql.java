@@ -2,17 +2,16 @@ package com.example.lrfinalproject.databases;
 
 import java.sql.*;
 
-public class JdbcUtil {
+public class MySql {
 
-    String connectionUrl;
-    String user;
-    String password;
+    String connectionUrl = "jdbc:mysql://localhost:3306/cs622?useTimezone=true&serverTimezone=UTC";
+    String user = "luther";
+    String password = "Ilovebaobei!";
     String driver = "com.mysql.cj.jdbc.Driver";
+    String tableName = "PUB_MED_ARTICLES";
 
-    public JdbcUtil(String url, String userName, String userPassword) throws SQLException {
-        this.connectionUrl = url; //"jdbc:mysql://localhost:3306/cs622?useTimezone=true&serverTimezone=UTC"
-        this.user = userName;
-        this.password = userPassword;
+    public MySql() throws SQLException {
+        createTable("ARTICLE_TITLE", "ARTICLE_YEAR");
     }
 
     private void executeUpdate(String query) {
@@ -62,12 +61,17 @@ public class JdbcUtil {
             String count = rs.getString("count");
             String year = rs.getString("year");
 
-            System.out.println(year+"        |        "+count);
+            System.out.println(year + "        |        " + count);
         }
     }
 
+    public void addRow(Article article) {
+        String cleanTitle = article.articleTitle.replace("'", " ").toLowerCase();
+        insert(tableName, cleanTitle, article.articleYear.toLowerCase());
+    }
+
     // SQL Create Table with JDBC
-    public void createTable(String tableName, String col1, String col2) {
+    public void createTable(String col1, String col2) {
         //query structure ==> CREATE TABLE table_name(column_name column_type);
 
         // drop the table if it already exists
