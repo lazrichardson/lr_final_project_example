@@ -3,12 +3,10 @@ package com.example.lrfinalproject.databases;
 public class Article {
 
     String articleTitle;
-    String articleContents;
     String articleYear;
 
-    public Article(String articleTitle, String articleContents, String articleYear) {
+    public Article(String articleTitle, String articleYear) {
         this.articleTitle = articleTitle;
-        this.articleContents = articleContents;
         this.articleYear = articleYear;
     }
 
@@ -20,11 +18,4 @@ public class Article {
         this.articleTitle = articleTitle;
     }
 
-    public String getArticleContents() {
-        return articleContents;
-    }
-
-    public void setArticleContents(String articleContents) {
-        this.articleContents = articleContents;
-    }
 }

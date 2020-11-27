@@ -19,17 +19,41 @@ import java.util.ArrayList;
 
 public class XmlDocParse {
 
+    public ArrayList<Article> articles;
+    public ArrayList<Article> bruteForceSearchResults;
+    public ArrayList<Article> mongoSearchResults;
+    public ArrayList<Article> luceneSearchResults;
+    public ArrayList<Article> sqlSearchResults;
+
+    public Long searchTime;
+
+    private MongoDb mongoDb;
+    private Lucene lucene;
+
+    final private String indexDirectory = "src/main/java/luceneIndex";
+
 
     public XmlDocParse() {
         this.articles = new ArrayList<>();
-        this.searchResults = new ArrayList<>();
+        this.bruteForceSearchResults = new ArrayList<>();
+        this.mongoSearchResults = new ArrayList<>();
+        this.luceneSearchResults = new ArrayList<>();
+        this.sqlSearchResults = new ArrayList<>();
+
         this.searchTime = null;
     }
 
-    public ArrayList<Article> articles;
-    public ArrayList<Article> searchResults;
-    public Long searchTime;
-    private MongoDb mongoDb;
+
+    public void addArticlesToLucene() throws IOException {
+
+        lucene = new Lucene(indexDirectory);
+
+        for (Article article : articles) {
+            lucene.addDoc(article.articleTitle, article.articleYear);
+        }
+        lucene.writer.close();
+
+    }
 
     public void addArticlesToMongo() throws ParseException {
 
@@ -125,7 +149,7 @@ public class XmlDocParse {
                 }
 
                 // add to the list of articles
-                articles.add(new Article(articleTitle, articleAbstract, articleYear));
+                articles.add(new Article(articleTitle, articleYear));
             }
         }
     }
@@ -161,7 +185,7 @@ public class XmlDocParse {
 
                     if (articleDate >= from && articleDate <= to) {
                         // todo: test date filtering
-                        searchResults.add(article);
+                        bruteForceSearchResults.add(article);
                     }
                 }
             }
@@ -173,7 +197,7 @@ public class XmlDocParse {
     }
 
     public void printSearchResults() {
-        System.out.println("Hits found: " + searchResults.size());
+        System.out.println("Hits found: " + bruteForceSearchResults.size());
         System.out.println("Search Time (microseconds): " + searchTime);
     }
 }
