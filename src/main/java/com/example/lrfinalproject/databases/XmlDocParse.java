@@ -149,32 +149,40 @@ public class XmlDocParse {
         }
     }
 
-    public void search(String database, String searchTerm, String startYear, String endYear) throws ParseException, SQLException, IOException {
-        // mongoSearchResults = mongoDb.mongoTermDateSearch(searchTerm, startYear, endYear);
-        // mySql.searchRange(searchTerm, startYear, endYear);
-        // bruteForceSearch(searchTerm, startYear, endYear);
+    public ArrayList<Article> search(String database, String searchTerm, String startYear, String endYear) throws ParseException, SQLException, IOException {
+
+        ArrayList<Article> result = new ArrayList<>();
+
+        // clear out the old search results
+        bruteForceSearchResults.clear();
+        luceneSearchResults.clear();
+        mongoSearchResults.clear();
+        sqlSearchResults.clear();
 
         if (database.equals("bruteforce")) {
             bruteForceSearch(searchTerm, startYear, endYear);
             System.out.println("Bruteforce Results: " + bruteForceSearchResults.size());
+            result = bruteForceSearchResults;
         }
-
 
         if (database.equals("lucene")) {
             luceneSearchResults = lucene.search(searchTerm, startYear, endYear);
             System.out.println("Lucene Results: " + luceneSearchResults.size());
+            result = luceneSearchResults;
         }
 
         if (database.equals("mongo")) {
             mongoSearchResults = mongoDb.mongoTermDateSearch(searchTerm, startYear, endYear);
             System.out.println("Mongo Results: " + mongoSearchResults.size());
+            result = mongoSearchResults;
         }
 
         if (database.equals("mysql")) {
             sqlSearchResults = mySql.searchTerm(searchTerm, startYear, endYear);
             System.out.println("MySql Results: " + sqlSearchResults.size());
+            result = sqlSearchResults;
         }
-
+        return result;
     }
 
     private void bruteForceSearch(String searchTerm, String fromDate, String toDate) {
