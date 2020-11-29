@@ -65,12 +65,14 @@ public class MongoDb {
         ArrayList<Document> results = new ArrayList<>();
         ArrayList<Article> returnResults = new ArrayList<>();
 
-        String searchRegex = ".*" + searchTerm + ".*";
 
         int startDate = Integer.parseInt(fromDate);
         int endDate = Integer.parseInt(toDate);
 
-        Bson match = and(eq("title", Pattern.compile(searchTerm)), and(lte("year", 2017L), gte("year", 0L)));
+        Bson match = and(eq("title", Pattern.compile(searchTerm)),
+                and(lte("year", endDate), gte("year", startDate)));
+
+        //String searchRegex = ".*" + searchTerm + ".*";
         // Bson match = and(regex("title", searchRegex), gte("year", startDate), lte("year", endDate));
         mongoDatabase.getCollection(collectionName).find(match).into(results);
 

@@ -33,7 +33,7 @@ public class XmlDocParse {
     private MySql mySql;
 
 
-    public XmlDocParse() throws IOException, SQLException, ParseException {
+    public XmlDocParse() throws IOException{
         this.ARTICLES = new ArrayList<>();
         this.bruteForceSearchResults = new ArrayList<>();
         this.mongoSearchResults = new ArrayList<>();
