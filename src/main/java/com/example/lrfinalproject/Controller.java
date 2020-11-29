@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.text.ParseException;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
+
 @RestController
 public class Controller {
 
@@ -34,7 +36,7 @@ public class Controller {
     }
 
     // Example: http://localhost:8081/query?type=mongo&start=2018&end=2020&term=heart
-
+    @CrossOrigin(origins = "http://localhost:8888")
     @GetMapping("/query")
     public Query query(@RequestParam(value = "type", defaultValue = "mongo") String type,
                        @RequestParam(value = "start", defaultValue = "1900") String startYear,
