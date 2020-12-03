@@ -3,6 +3,7 @@ package com.example.lrfinalproject.databases;
 import java.io.File;
 import java.io.IOException;
 
+import com.example.lrfinalproject.ExecutionTimer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -15,6 +16,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Timer;
 
 
 public class XmlDocParse {
@@ -31,18 +33,24 @@ public class XmlDocParse {
     private MongoDb mongoDb;
     private Lucene lucene;
     private MySql mySql;
+    private ArrayList<ExecutionTimer> timers;
 
 
-    public XmlDocParse() throws IOException{
+    public XmlDocParse() throws IOException {
         this.ARTICLES = new ArrayList<>();
         this.bruteForceSearchResults = new ArrayList<>();
         this.mongoSearchResults = new ArrayList<>();
         this.luceneSearchResults = new ArrayList<>();
         this.sqlSearchResults = new ArrayList<>();
+        this.timers = new ArrayList<>();
 
         this.mongoDb = new MongoDb();
         this.lucene = new Lucene("/Users/luther/Downloads/demo 2/src/main/resources/luceneIndex");
         this.mySql = new MySql();
+    }
+
+    public ArrayList<ExecutionTimer> getTimers() {
+        return timers;
     }
 
     public ArrayList<Article> getBruteForceSearchResults() {
@@ -159,26 +167,51 @@ public class XmlDocParse {
         mongoSearchResults.clear();
         sqlSearchResults.clear();
 
+        // set up the timers
+        ExecutionTimer bruteForceTimer = new ExecutionTimer("bruteforce");
+        ExecutionTimer luceneTimer = new ExecutionTimer("lucene");
+        ExecutionTimer mongoTimer = new ExecutionTimer("mongo");
+        ExecutionTimer sqlTimer = new ExecutionTimer("mysql");
+
+        // run the searches
+
+        // bruteforce
+        bruteForceTimer.startTime();
+        bruteForceSearch(searchTerm, startYear, endYear);
+        bruteForceTimer.endTime();
+        timers.add(bruteForceTimer);
+
+        //lucene
+        luceneTimer.startTime();
+        luceneSearchResults = lucene.search(searchTerm, startYear, endYear);
+        luceneTimer.endTime();
+        timers.add(luceneTimer);
+
+
+        // mongo
+        mongoTimer.startTime();
+        mongoSearchResults = mongoDb.mongoTermDateSearch(searchTerm, startYear, endYear);
+        mongoTimer.endTime();
+        timers.add(mongoTimer);
+
+
+        // mysql
+        sqlTimer.startTime();
+        sqlSearchResults = mySql.searchTerm(searchTerm, startYear, endYear);
+        sqlTimer.endTime();
+        timers.add(sqlTimer);
+
+
         if (database.equals("bruteforce")) {
-            bruteForceSearch(searchTerm, startYear, endYear);
             System.out.println("Bruteforce Results: " + bruteForceSearchResults.size());
             result = bruteForceSearchResults;
-        }
-
-        if (database.equals("lucene")) {
-            luceneSearchResults = lucene.search(searchTerm, startYear, endYear);
+        } else if (database.equals("lucene")) {
             System.out.println("Lucene Results: " + luceneSearchResults.size());
             result = luceneSearchResults;
-        }
-
-        if (database.equals("mongo")) {
-            mongoSearchResults = mongoDb.mongoTermDateSearch(searchTerm, startYear, endYear);
+        } else if (database.equals("mongo")) {
             System.out.println("Mongo Results: " + mongoSearchResults.size());
             result = mongoSearchResults;
-        }
-
-        if (database.equals("mysql")) {
-            sqlSearchResults = mySql.searchTerm(searchTerm, startYear, endYear);
+        } else if (database.equals("mysql")) {
             System.out.println("MySql Results: " + sqlSearchResults.size());
             result = sqlSearchResults;
         }

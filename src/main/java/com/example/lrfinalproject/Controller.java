@@ -47,4 +47,12 @@ public class Controller {
         ArrayList<Article> search = docParse.search(type, searchTerm, startYear, endYear);
         return new Query(type, startYear, endYear, searchTerm, search);
     }
+
+    // Example: http://localhost:8081/report
+    @CrossOrigin(origins = "http://localhost:8888")
+    @GetMapping("/report")
+    public TimerHistory timerHistory() {
+        return new TimerHistory(docParse.getTimers());
+    }
+
 }
