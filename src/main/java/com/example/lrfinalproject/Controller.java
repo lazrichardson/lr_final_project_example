@@ -43,7 +43,7 @@ public class Controller {
                        @RequestParam(value = "end", defaultValue = "2100") String endYear,
                        @RequestParam(value = "term", defaultValue = "cancer") String searchTerm
     ) throws ParseException, SQLException, IOException {
-
+        searchTerm = searchTerm.replace("_", " ");
         ArrayList<Article> search = docParse.search(type, searchTerm, startYear, endYear);
         return new Query(type, startYear, endYear, searchTerm, search);
     }

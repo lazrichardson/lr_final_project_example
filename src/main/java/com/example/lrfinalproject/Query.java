@@ -29,22 +29,6 @@ public class Query {
 
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public String getStartYear() {
-        return startYear;
-    }
-
-    public String getEndYear() {
-        return endYear;
-    }
-
-    public String getSearchTerm() {
-        return searchTerm;
-    }
-
     public ArrayList<Article> getResults() {
         return results;
     }
