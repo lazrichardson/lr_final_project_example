@@ -47,7 +47,7 @@ public class Lucene {
         do {
             query.add(new TermQuery(new Term("year", Integer.toString(start))), BooleanClause.Occur.SHOULD);
             start++;
-        } while (start < end);
+        } while (start <= end);
         // must include at least one of the dates in the range
         query.setMinimumNumberShouldMatch(1);
 
