@@ -1,11 +1,8 @@
 package com.example.lrfinalproject;
 
 import com.example.lrfinalproject.databases.Article;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.util.ArrayList;
 
 public class Query {

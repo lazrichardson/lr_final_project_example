@@ -2,26 +2,17 @@ package com.example.lrfinalproject;
 
 import com.example.lrfinalproject.databases.Article;
 import com.example.lrfinalproject.databases.XmlDocParse;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.*;
-
-import com.fasterxml.jackson.databind.*;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
-import java.util.ArrayList;
-
-
 import java.io.IOException;
 import java.sql.SQLException;
 import java.text.ParseException;
-
-import org.springframework.web.bind.annotation.CrossOrigin;
+import java.util.ArrayList;
 
 @RestController
 public class Controller {
