@@ -12,6 +12,10 @@ public class ExecutionTimer {
         this.tag = tag;
     }
 
+    public String getTag() {
+        return tag;
+    }
+
     public void startTime() {
         startTime = System.nanoTime();
     }
