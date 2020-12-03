@@ -177,21 +177,33 @@ public class XmlDocParse {
 
         // bruteforce
         bruteForceTimer.startTime();
+        // search
         bruteForceSearch(searchTerm, startYear, endYear);
         bruteForceTimer.endTime();
+        // set timer details
+        bruteForceTimer.setSearchString(searchTerm, startYear, endYear);
+        bruteForceTimer.setNumResults(bruteForceSearchResults.size());
         timers.add(bruteForceTimer);
 
         //lucene
         luceneTimer.startTime();
+        // search
         luceneSearchResults = lucene.search(searchTerm, startYear, endYear);
         luceneTimer.endTime();
+        // set timer details
+        luceneTimer.setSearchString(searchTerm, startYear, endYear);
+        luceneTimer.setNumResults(luceneSearchResults.size());
         timers.add(luceneTimer);
 
 
         // mongo
         mongoTimer.startTime();
+        // search
         mongoSearchResults = mongoDb.mongoTermDateSearch(searchTerm, startYear, endYear);
         mongoTimer.endTime();
+        // set timer details
+        mongoTimer.setSearchString(searchTerm, startYear, endYear);
+        mongoTimer.setNumResults(mongoSearchResults.size());
         timers.add(mongoTimer);
 
 
@@ -199,21 +211,29 @@ public class XmlDocParse {
         sqlTimer.startTime();
         sqlSearchResults = mySql.searchTerm(searchTerm, startYear, endYear);
         sqlTimer.endTime();
+        // set timer details
+        sqlTimer.setSearchString(searchTerm, startYear, endYear);
+        sqlTimer.setNumResults(sqlSearchResults.size());
         timers.add(sqlTimer);
 
 
-        if (database.equals("bruteforce")) {
-            System.out.println("Bruteforce Results: " + bruteForceSearchResults.size());
-            result = bruteForceSearchResults;
-        } else if (database.equals("lucene")) {
-            System.out.println("Lucene Results: " + luceneSearchResults.size());
-            result = luceneSearchResults;
-        } else if (database.equals("mongo")) {
-            System.out.println("Mongo Results: " + mongoSearchResults.size());
-            result = mongoSearchResults;
-        } else if (database.equals("mysql")) {
-            System.out.println("MySql Results: " + sqlSearchResults.size());
-            result = sqlSearchResults;
+        switch (database) {
+            case "bruteforce":
+                System.out.println("Bruteforce Results: " + bruteForceSearchResults.size());
+                result = bruteForceSearchResults;
+                break;
+            case "lucene":
+                System.out.println("Lucene Results: " + luceneSearchResults.size());
+                result = luceneSearchResults;
+                break;
+            case "mongo":
+                System.out.println("Mongo Results: " + mongoSearchResults.size());
+                result = mongoSearchResults;
+                break;
+            case "mysql":
+                System.out.println("MySql Results: " + sqlSearchResults.size());
+                result = sqlSearchResults;
+                break;
         }
         return result;
     }
@@ -231,7 +251,6 @@ public class XmlDocParse {
 
                     int articleDate = Integer.parseInt(article.articleYear);
                     if (articleDate >= from && articleDate <= to) {
-                        // todo: test date filtering
                         bruteForceSearchResults.add(article);
                     }
 
