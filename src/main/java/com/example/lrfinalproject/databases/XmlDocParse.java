@@ -166,6 +166,7 @@ public class XmlDocParse {
         luceneSearchResults.clear();
         mongoSearchResults.clear();
         sqlSearchResults.clear();
+        timers.clear();
 
         // set up the timers
         ExecutionTimer bruteForceTimer = new ExecutionTimer("bruteforce");
