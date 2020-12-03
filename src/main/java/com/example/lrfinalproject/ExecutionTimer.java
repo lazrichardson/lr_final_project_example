@@ -27,13 +27,13 @@ public class ExecutionTimer {
         calcElapsedTime();
     }
 
-    public void setSearchString(String term, String start, String end){
+    public void setSearchString(String term, String start, String end) {
         this.searchString = "Search for papers containing the word " + term
                 + " from " + start + " to " + end
                 + " using " + tag;
     }
 
-    public void setNumResults(int numResults){
+    public void setNumResults(int numResults) {
         this.numResults = numResults;
     }
 
@@ -47,6 +47,10 @@ public class ExecutionTimer {
 
     public String getSearchString() {
         return searchString;
+    }
+
+    public int getNumResults() {
+        return numResults;
     }
 }
 
