@@ -1,5 +1,6 @@
 package com.example.lrfinalproject.databases;
 
+import com.example.lrfinalproject.ExecutionTimer;
 import com.mongodb.*;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -37,6 +38,7 @@ public class MongoDb {
     MongoClient mongoClient;
     MongoDatabase mongoDatabase;
     String collectionName = "pubMedData";
+    ExecutionTimer timer;
 
     public MongoDb() {
         // initialize the client object + get the test db
@@ -53,6 +55,10 @@ public class MongoDb {
         mongoDatabase.createCollection(collectionName);
     }
 
+    public ExecutionTimer getTimer() {
+        return timer;
+    }
+
     public void addMongoDoc(Article article) {
         // insert a new document into a collection
         Document doc = new Document();
@@ -64,6 +70,7 @@ public class MongoDb {
     public ArrayList<Article> mongoTermDateSearch(String searchTerm, String fromDate, String toDate) throws ParseException {
         ArrayList<Document> results = new ArrayList<>();
         ArrayList<Article> returnResults = new ArrayList<>();
+        timer = new ExecutionTimer("mongo");
 
 
         int startDate = Integer.parseInt(fromDate);
@@ -74,7 +81,9 @@ public class MongoDb {
 
         //String searchRegex = ".*" + searchTerm + ".*";
         // Bson match = and(regex("title", searchRegex), gte("year", startDate), lte("year", endDate));
+        timer.startTime();
         mongoDatabase.getCollection(collectionName).find(match).into(results);
+        timer.endTime();
 
         for (Document result : results) {
             Article article = new Article(result.get("title").toString(),

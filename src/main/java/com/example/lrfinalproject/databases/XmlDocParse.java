@@ -187,32 +187,30 @@ public class XmlDocParse {
         timers.add(bruteForceTimer);
 
         //lucene
-        luceneTimer.startTime();
         // search
         luceneSearchResults = lucene.search(searchTerm, startYear, endYear);
-        luceneTimer.endTime();
         // set timer details
+        luceneTimer = lucene.getTimer();
         luceneTimer.setSearchString(searchTerm, startYear, endYear);
         luceneTimer.setNumResults(luceneSearchResults.size());
         timers.add(luceneTimer);
 
 
         // mongo
-        mongoTimer.startTime();
         // search
         mongoSearchResults = mongoDb.mongoTermDateSearch(searchTerm, startYear, endYear);
-        mongoTimer.endTime();
         // set timer details
+        mongoTimer = mongoDb.getTimer();
         mongoTimer.setSearchString(searchTerm, startYear, endYear);
         mongoTimer.setNumResults(mongoSearchResults.size());
         timers.add(mongoTimer);
 
 
         // mysql
-        sqlTimer.startTime();
+        // search
         sqlSearchResults = mySql.searchTerm(searchTerm, startYear, endYear);
-        sqlTimer.endTime();
         // set timer details
+        sqlTimer = mySql.getTimer();
         sqlTimer.setSearchString(searchTerm, startYear, endYear);
         sqlTimer.setNumResults(sqlSearchResults.size());
         timers.add(sqlTimer);

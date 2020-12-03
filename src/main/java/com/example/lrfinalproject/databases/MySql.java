@@ -1,5 +1,7 @@
 package com.example.lrfinalproject.databases;
 
+import com.example.lrfinalproject.ExecutionTimer;
+
 import java.sql.*;
 import java.util.ArrayList;
 
@@ -10,9 +12,14 @@ public class MySql {
     String password = "Ilovebaobei!";
     String driver = "com.mysql.cj.jdbc.Driver";
     String tableName = "PUB_MED_ARTICLES";
+    ExecutionTimer timer;
 
     public MySql() {
         createTable("ARTICLE_TITLE", "ARTICLE_YEAR");
+    }
+
+    public ExecutionTimer getTimer() {
+        return timer;
     }
 
     private void executeUpdate(String query) {
@@ -30,10 +37,13 @@ public class MySql {
     private ArrayList<Article> executeQuery(String query) {
         ArrayList<Article> results = new ArrayList<>();
         try {
+            timer = new ExecutionTimer("mysql");
             Class.forName(driver);
             Connection con = DriverManager.getConnection(connectionUrl, user, password);
             Statement stmt = con.createStatement();
+            timer.startTime();
             ResultSet rs = stmt.executeQuery(query);
+            timer.endTime();
             results = readTermDateResultSet(rs);
             con.close();
         } catch (Exception ex) {

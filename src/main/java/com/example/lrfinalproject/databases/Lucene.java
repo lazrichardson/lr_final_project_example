@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
+import com.example.lrfinalproject.ExecutionTimer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -20,6 +21,7 @@ public class Lucene {
     String indexLocation;
     IndexWriterConfig config;
     IndexWriter writer;
+    ExecutionTimer timer;
 
     public Lucene(String indexDirectory) throws IOException {
         // Specify the analyzer for tokenizing text.
@@ -33,8 +35,13 @@ public class Lucene {
         writer = new IndexWriter(index, config);
     }
 
+    public ExecutionTimer getTimer() {
+        return timer;
+    }
+
     public ArrayList<Article> search(String searchTerm, String startDate, String endDate) throws IOException {
         ArrayList<Article> results = new ArrayList<>();
+        timer = new ExecutionTimer("lucene");
 
         // initialize the boolean query
         BooleanQuery.Builder query = new BooleanQuery.Builder();
@@ -55,7 +62,9 @@ public class Lucene {
         int hitsPerPage = 1000000000;
         IndexReader reader = DirectoryReader.open(index);
         IndexSearcher searcher = new IndexSearcher(reader);
+        timer.startTime();
         TopDocs docs = searcher.search(query.build(), hitsPerPage);
+        timer.endTime();
         // Add results
         ScoreDoc[] hits = docs.scoreDocs;
 
